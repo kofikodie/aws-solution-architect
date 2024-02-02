@@ -1,11 +1,11 @@
 
-//data "aws_secretsmanager_secret" "saa_sm" {
-//  name = "saa_password_manager"
-//}
-//
-//data "aws_secretsmanager_secret_version" "saa_sm_version" {
-//  secret_id = data.aws_secretsmanager_secret.saa_sm.id
-//}
+data "aws_secretsmanager_secret" "saa_sm_rds" {
+  name = "saa_pw_manager"
+}
+
+data "aws_secretsmanager_secret_version" "saa_sm_version" {
+  secret_id = data.aws_secretsmanager_secret.saa_sm_rds.id
+}
 
 resource "aws_db_instance" "tfer--database-1" {
   allocated_storage                     = "20"
@@ -29,6 +29,7 @@ resource "aws_db_instance" "tfer--database-1" {
   maintenance_window                    = "mon:04:23-mon:04:53"
   max_allocated_storage                 = "1000"
   monitoring_interval                   = "60"
+  monitoring_role_arn                   = aws_iam_role.rds_monitoring_role.arn
   multi_az                              = "false"
   network_type                          = "IPV4"
   option_group_name                     = "default:mysql-8-0"
@@ -41,6 +42,29 @@ resource "aws_db_instance" "tfer--database-1" {
   storage_throughput                    = "0"
   storage_type                          = "gp2"
   username                              = "admin"
-  password                              = "admin123"//data.aws_secretsmanager_secret_version.saa_sm_version.secret_string
+  password                              = "" //data.aws_secretsmanager_secret_version.saa_sm_version.secret_string
+  skip_final_snapshot                   = false
+}
+
+resource "aws_iam_role" "rds_monitoring_role" {
+  name = "rds-monitoring-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "monitoring.rds.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "rds_monitoring_attachment" {
+  name       = "rds-monitoring-attachment"
+  roles      = [aws_iam_role.rds_monitoring_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 
 }
