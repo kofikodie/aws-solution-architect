@@ -18,7 +18,7 @@ resource "aws_db_instance" "tfer--database-1" {
   copy_tags_to_snapshot                 = "true"
   customer_owned_ip_enabled             = "false"
   db_name                               = "mydb"
-  deletion_protection                   = "true"
+  deletion_protection                   = false
   engine                                = "mysql"
   engine_version                        = "8.0.35"
   iam_database_authentication_enabled   = "false"
@@ -43,7 +43,17 @@ resource "aws_db_instance" "tfer--database-1" {
   storage_type                          = "gp2"
   username                              = "admin"
   password                              = "" //data.aws_secretsmanager_secret_version.saa_sm_version.secret_string
-  skip_final_snapshot                   = false
+  skip_final_snapshot                   = true
+  db_subnet_group_name                  = aws_db_subnet_group.tfer--database-1.name
+}
+
+resource "aws_db_subnet_group" "tfer--database-1" {
+  name        = "tfer--database-1"
+  description = "tfer--database-1"
+  subnet_ids  = [aws_subnet.this_public[0].id, aws_subnet.this_public[1].id]
+  tags = {
+    Name = "tfer--database-1"
+  }
 }
 
 resource "aws_iam_role" "rds_monitoring_role" {
