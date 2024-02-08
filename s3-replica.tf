@@ -9,12 +9,12 @@ resource "aws_s3_bucket_versioning" "saa_tutorial_kody_bucket_versioning-v2" {
   }
 }
 
-resource "aws_s3_bucket" "saa_tutorial_kody_bucket-replica-v2" {
+resource "aws_s3_bucket" "saa_tutorial_kody_bucket_replica_v2" {
   bucket = "saa-tutorial-kody-bucket-replica-v2"
 }
 
 resource "aws_s3_bucket_versioning" "saa_tutorial_kody_bucket_versioning_replica_v2" {
-  bucket = aws_s3_bucket.saa_tutorial_kody_bucket-replica-v2.id
+  bucket = aws_s3_bucket.saa_tutorial_kody_bucket_replica_v2.id
   versioning_configuration {
     status = "Enabled"
   }
@@ -47,7 +47,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
     status = "Enabled"
 
     destination {
-      bucket        = aws_s3_bucket.saa_tutorial_kody_bucket-replica-v2.arn
+      bucket        = aws_s3_bucket.saa_tutorial_kody_bucket_replica_v2.arn
       storage_class = "STANDARD"
     }
   }

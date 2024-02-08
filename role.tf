@@ -44,7 +44,7 @@ resource "aws_iam_policy" "replication" {
           "s3:ReplicateDelete",
           "s3:ReplicateTags"
         ],
-        "Resource" : ["${aws_s3_bucket.saa_tutorial_kody_bucket-replica-v2.arn}/*"]
+        "Resource" : ["${aws_s3_bucket.saa_tutorial_kody_bucket_replica_v2.arn}/*"]
       }
     ]
   })
