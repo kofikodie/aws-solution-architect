@@ -20,7 +20,7 @@ resource "aws_s3_bucket_versioning" "saa_tutorial_kody_bucket_versioning_replica
   }
 }
 
-resource "aws_s3_object" "saa_tutorial_kody_bucket_folder-origin-v2" {
+resource "aws_s3_object" "saa_tutorial_kody_bucket_folder_origin_v2_files" {
   bucket = aws_s3_bucket.saa_tutorial_kody_bucket_origin_v2.id
 
   for_each = fileset("${path.module}/sync", "**/*")
@@ -42,7 +42,7 @@ resource "aws_s3_bucket_replication_configuration" "replication" {
       status = "Enabled"
     }
     filter {
-      prefix = "/"
+      prefix = ""
     }
     status = "Enabled"
 
