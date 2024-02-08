@@ -26,7 +26,7 @@ resource "aws_iam_policy" "replication" {
           "s3:GetReplicationConfiguration",
           "s3:ListBucket"
         ],
-        "Resource" : [aws_s3_bucket.saa_tutorial_kody_bucket-origin-v2.arn]
+        "Resource" : [aws_s3_bucket.saa_tutorial_kody_bucket_origin_v2.arn]
       },
       {
         "Effect" : "Allow",
@@ -35,7 +35,7 @@ resource "aws_iam_policy" "replication" {
           "s3:GetObjectVersionAcl",
           "s3:GetObjectVersionTagging"
         ],
-        "Resource" : ["${aws_s3_bucket.saa_tutorial_kody_bucket-origin-v2.arn}/*"]
+        "Resource" : ["${aws_s3_bucket.saa_tutorial_kody_bucket_origin_v2.arn}/*"]
       },
       {
         "Effect" : "Allow",
