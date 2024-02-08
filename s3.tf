@@ -9,7 +9,7 @@ resource "aws_s3_bucket_versioning" "saa_tutorial_kody_bucket_versioning" {
   }
 }
 
-resource "aws_s3_object" "saa_tutorial_kody_bucket_folder" {
+resource "aws_s3_object" "saa_tutorial_kody_bucket_files" {
   bucket = aws_s3_bucket.saa_tutorial_kody_bucket.id
 
   for_each = fileset("${path.module}/home", "**/*")
