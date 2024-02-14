@@ -31,14 +31,6 @@ resource "aws_s3_bucket_website_configuration" "saa_tutorial_kody_bucket_website
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "saa_tutorial_kody_bucket_public_access_block" {
-  bucket                  = aws_s3_bucket.saa_tutorial_kody_bucket.id
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
 resource "aws_s3_bucket_policy" "saa_tutorial_kody_bucket_policy" {
   bucket = aws_s3_bucket.saa_tutorial_kody_bucket.id
 
@@ -53,4 +45,12 @@ resource "aws_s3_bucket_policy" "saa_tutorial_kody_bucket_policy" {
       },
     ],
   })
+}
+
+resource "aws_s3_bucket_public_access_block" "saa_tutorial_kody_bucket_public_access_block" {
+  bucket                  = aws_s3_bucket.saa_tutorial_kody_bucket.id
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 }
