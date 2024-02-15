@@ -72,3 +72,10 @@ module "ec2_instance_central" {
     aws = aws.secondary
   }
 }
+
+module "global_accelerator" {
+  source                           = "./modules/global_accelerator"
+  name                             = "global-accelerator"
+  ec2_instance_west_instance_id    = module.ec2_instance_west.instance_id
+  ec2_instance_central_instance_id = module.ec2_instance_central.instance_id
+}
