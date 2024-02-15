@@ -1,16 +1,16 @@
 resource "aws_vpc" "this" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
+  cidr_block         = "10.0.0.0/16"
+  enable_dns_support = true
 
   tags = tomap({
-    "Name" = "terraform-vpc",
+    "Name" = "vpc-${var.name}",
   })
 }
 
 resource "aws_subnet" "this_public" {
   count = 2
 
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  availability_zone       = var.azs[count.index]
   cidr_block              = "10.0.${count.index}.0/24"
   map_public_ip_on_launch = true
   vpc_id                  = aws_vpc.this.id
@@ -24,7 +24,7 @@ resource "aws_internet_gateway" "ig" {
   vpc_id = aws_vpc.this.id
 
   tags = {
-    Name = "terraform-ig"
+    Name = "terraform-ig-${var.name}"
   }
 }
 
@@ -34,6 +34,10 @@ resource "aws_route_table" "rt" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.ig.id
+  }
+
+  tags = {
+    Name = "terraform-rt-${var.name}"
   }
 }
 
