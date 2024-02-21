@@ -28,15 +28,9 @@ module "vpn" {
   azs  = ["eu-west-1a", "eu-west-1b"]
 }
 
-module "sqs" {
-  source = "./modules/sqs"
+module "sns" {
+  source = "./modules/sns"
 
-  sqs_queue_name = "saa-c03-sqs"
-}
-
-module "sqs_fifo" {
-  source = "./modules/sqs"
-
-  sqs_queue_name = "saaC03Sqs.fifo"
-  fifo_queue     = true
+  name       = "saa-c03-sns"
+  fifo_topic = false
 }
