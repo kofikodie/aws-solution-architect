@@ -28,9 +28,16 @@ module "vpn" {
   azs  = ["eu-west-1a", "eu-west-1b"]
 }
 
-module "sns" {
-  source = "./modules/sns"
+module "kinesis" {
+  source = "./modules/kinesis/streams"
 
-  name       = "saa-c03-sns"
-  fifo_topic = false
+  name = "saa-c03-kinesis"
+}
+
+module "firehose" {
+  source = "./modules/kinesis/firehose"
+
+  name            = "saa-c03-firehose"
+  destination     = "extended_s3"
+  data_stream_arn = module.kinesis.data_stream_arn
 }
