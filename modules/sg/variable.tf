@@ -5,3 +5,7 @@ variable "name" {
 variable "vpc_id" {
   description = "The VPC ID"
 }
+
+variable "container_port" {
+  description = "The port the container listens on"
+}

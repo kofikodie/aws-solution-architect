@@ -31,34 +31,24 @@ module "vpc" {
 module "sg" {
   source = "./modules/sg"
 
-  name   = "saa-c03-sg"
-  vpc_id = module.vpc.vpc_id
-}
-
-module "launch_template" {
-  source = "./modules/lt"
-
-  name          = "saa-c03-lt"
-  image_id      = "ami-0323d48d3a525fd18"
-  instance_type = "t3.medium"
-  sg_id         = module.sg.sg_id
-  vpc_id        = module.vpc.vpc_id
+  name           = "saa-c03-sg"
+  vpc_id         = module.vpc.vpc_id
+  container_port = 80
 }
 
 module "asg" {
   source = "./modules/asg"
 
-  ecs_lt_id  = module.launch_template.lt_id
-  subnet_ids = module.vpc.subnet_ids
+  ecs_service_name = module.ecs.aws_ecs_service_name
+  ecs_cluster_name = module.ecs.aws_ecs_cluster_name
 }
 
 module "ecs" {
   source = "./modules/ecs"
 
   name                 = "SaaC03EcsCluster"
-  asg_arn              = module.asg.asg_arn
   subnet_ids           = module.vpc.subnet_ids
-  sg_id                = module.sg.sg_id
+  sg_id                = module.sg.sg_ecs_id
   alb_target_group_arn = module.alb.alb_target_group_arn
 }
 
@@ -68,7 +58,7 @@ module "alb" {
   name       = "saa-c03-alb"
   internal   = false
   subnet_ids = module.vpc.subnet_ids
-  sg_id      = module.sg.sg_id
+  sg_id      = module.sg.sg_alb_id
   port       = 80
   vpc_id     = module.vpc.vpc_id
 }

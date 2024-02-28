@@ -4,6 +4,8 @@ resource "aws_lb" "alb" {
   load_balancer_type = "application"
   security_groups    = [var.sg_id]
   subnets            = var.subnet_ids
+
+  enable_deletion_protection = false
 }
 
 resource "aws_lb_listener" "listener" {

@@ -1,9 +1,9 @@
-variable "subnet_ids" {
-  description = "The subnet IDs"
-  type        = list(string)
+variable "ecs_service_name" {
+  description = "The name of the ECS service"
+  type        = string
 }
 
-variable "ecs_lt_id" {
-  description = "The launch template"
+variable "ecs_cluster_name" {
+  description = "The name of the ECS cluster"
   type        = string
 }

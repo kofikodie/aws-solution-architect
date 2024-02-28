@@ -3,11 +3,6 @@ variable "name" {
   type        = string
 }
 
-variable "asg_arn" {
-  description = "The ARN of the autoscaling group"
-  type        = string
-}
-
 variable "subnet_ids" {
   description = "The subnet IDs"
   type        = list(string)
