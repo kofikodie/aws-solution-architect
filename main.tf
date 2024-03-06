@@ -1,3 +1,5 @@
+
+#https://www.qloudx.com/terraform-module-for-a-ready-to-use-amazon-eks-cluster-with-eks-fargate-aws-irsa-karpenter-with-spot-nodes-abs/ for complete code with karpeneter
 terraform {
   cloud {
     organization = "dragon-ws"
@@ -8,6 +10,9 @@ terraform {
   }
 
   required_providers {
+    kubectl = {
+      source = "gavinbunney/kubectl"
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
@@ -21,48 +26,187 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
+locals {
+  name            = "ex-${replace(basename(path.cwd), "_", "-")}"
+  cluster_version = "1.29"
+  region          = "eu-west-1"
+
+  vpc_cidr = "10.0.0.0/16"
+  azs      = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+
+  tags = {
+    Example    = local.name
+    GithubRepo = "terraform-aws-eks"
+    GithubOrg  = "terraform-aws-modules"
+  }
+}
+
+data "aws_caller_identity" "current" {}
+################################################################################
+# EKS Module
+################################################################################
+
+module "eks" {
+  source = "terraform-aws-modules/eks/aws"
+
+  cluster_name                   = local.name
+  cluster_version                = local.cluster_version
+  cluster_endpoint_public_access = true
+
+  cluster_addons = {
+    kube-proxy = {}
+    vpc-cni    = {}
+    coredns = {
+      configuration_values = jsonencode({
+        computeType = "fargate"
+      })
+    }
+  }
+
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
+  control_plane_subnet_ids = module.vpc.intra_subnets
+
+  # Fargate profiles use the cluster primary security group so these are not utilized
+  create_cluster_security_group = false
+  create_node_security_group    = false
+
+  fargate_profile_defaults = {
+    iam_role_additional_policies = {
+      additional = aws_iam_policy.additional.arn
+    }
+  }
+
+  fargate_profiles = {
+    example = {
+      name = "example"
+      selectors = [
+        {
+          namespace = "backend"
+          labels = {
+            Application = "backend"
+          }
+        },
+        {
+          namespace = "app-*"
+          labels = {
+            Application = "app-wildcard"
+          }
+        }
+      ]
+
+      # Using specific subnets instead of the subnets supplied for the cluster itself
+      subnet_ids = [module.vpc.private_subnets[1]]
+
+      tags = {
+        Owner = "secondary"
+      }
+    }
+    kube-system = {
+      selectors = [
+        { namespace = "kube-system" }
+      ]
+    }
+  }
+
+  # Cluster access entry
+  # To add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
+
+  access_entries = {
+    # One access entry with a policy associated
+    example = {
+      kubernetes_groups = []
+      principal_arn     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+
+      policy_associations = {
+        example = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+          access_scope = {
+            namespaces = ["default"]
+            type       = "namespace"
+          }
+        }
+      }
+    }
+  }
+
+
+  tags = local.tags
+}
+
+################################################################################
+# Sub-Module Usage on Existing/Separate Cluster
+################################################################################
+
+module "fargate_profile" {
+  source = "terraform-aws-modules/eks/aws//modules/fargate-profile"
+
+  name         = "separate-fargate-profile"
+  cluster_name = module.eks.cluster_name
+
+  subnet_ids = module.vpc.private_subnets
+  selectors = [{
+    namespace = "kube-system"
+  }]
+
+  tags = merge(local.tags, { Separate = "fargate-profile" })
+}
+
+module "disabled_fargate_profile" {
+  source = "terraform-aws-modules/eks/aws//modules/fargate-profile"
+
+  create = false
+}
+
+################################################################################
+# Supporting Resources
+################################################################################
+
 module "vpc" {
-  source = "./modules/vpc"
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 5.0"
 
-  name = "saa-c03-vpn"
-  azs  = ["eu-west-1a", "eu-west-1b"]
+  name = local.name
+  cidr = local.vpc_cidr
+
+  azs             = local.azs
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+  intra_subnets   = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 52)]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
+
+  public_subnet_tags = {
+    "kubernetes.io/role/elb" = 1
+  }
+
+  private_subnet_tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
+
+  tags = local.tags
 }
 
-module "sg" {
-  source = "./modules/sg"
+resource "aws_iam_policy" "additional" {
+  name = "${local.name}-additional"
 
-  name           = "saa-c03-sg"
-  vpc_id         = module.vpc.vpc_id
-  container_port = 80
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:Describe*",
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      },
+    ]
+  })
 }
 
-module "asg" {
-  source = "./modules/asg"
-
-  ecs_service_name = module.ecs.aws_ecs_service_name
-  ecs_cluster_name = module.ecs.aws_ecs_cluster_name
-}
-
-module "ecs" {
-  source = "./modules/ecs"
-
-  name                 = "SaaC03EcsCluster"
-  subnet_ids           = module.vpc.subnet_ids
-  sg_id                = module.sg.sg_ecs_id
-  alb_target_group_arn = module.alb.alb_target_group_arn
-}
-
-module "alb" {
-  source = "./modules/alb"
-
-  name       = "saa-c03-alb"
-  internal   = false
-  subnet_ids = module.vpc.subnet_ids
-  sg_id      = module.sg.sg_alb_id
-  port       = 80
-  vpc_id     = module.vpc.vpc_id
-}
-
-output "alb_dns_name" {
-  value = module.alb.dns_name
+output "cluster_name" {
+  description = "The name of the EKS cluster"
+  value       = module.eks.cluster_name
 }
