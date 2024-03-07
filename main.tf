@@ -47,3 +47,19 @@ module "lambda" {
   runtime                       = "python3.8"
   attach_iam_policy_to_iam_role = module.role.policy_attachment
 }
+
+module "gateway" {
+  source = "./module/gateway"
+
+  gateway_name         = "terraform_api_gateway"
+  resource_path        = "hello"
+  http_method          = "POST"
+  lambda_invoke_arn    = module.lambda.invoke_arn
+  lambda_function_name = module.lambda.name
+  region               = var.aws_region
+  accountId            = var.aws_account_id
+}
+
+output "gateway_url" {
+  value = "http://${module.gateway.gateway_url}/dev/hello"
+}

@@ -1,4 +1,4 @@
-resource "aws_lambda_function" "terraform_lambda_func" {
+resource "aws_lambda_function" "lambda_func" {
   filename      = var.filename
   function_name = var.function_name
   role          = var.role_arn

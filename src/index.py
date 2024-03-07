@@ -1,5 +1,12 @@
+import json
+
 def lambda_handler(event, context):
-   message = 'Hello {} !'.format(event['key1'])
-   return {
-       'message' : message
-   }
+    body = "Hello from Lambda!"
+    statusCode = 200
+    return {
+        "statusCode": statusCode,
+        "body": json.dumps(body),
+        "headers": {
+            "Content-Type": "application/json"
+        }
+    }
