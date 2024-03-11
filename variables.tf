@@ -14,4 +14,8 @@ variable "aws_secondary_region" {
   default = "eu-central-1"
 }
 
+variable "aws_account_id" {
+  description = "AWS account ID"
+}
+
 data "aws_availability_zones" "available" {}
