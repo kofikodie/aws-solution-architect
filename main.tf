@@ -38,15 +38,6 @@ module "vpc_west" {
   }
 }
 
-module "vpc_central" {
-  source = "./modules/vpc"
-  name   = "vpc-central"
-  azs    = ["eu-central-1a", "eu-central-1b"]
-  providers = {
-    aws = aws.secondary
-  }
-}
-
 module "ec2_instance_west" {
   source = "./modules/ec2_instance"
 
@@ -60,22 +51,9 @@ module "ec2_instance_west" {
   }
 }
 
-module "ec2_instance_central" {
-  source = "./modules/ec2_instance"
+module "cloudwatch_west" {
+  source = "./modules/cloudwatch"
 
-  instance_name = "central-instance"
-  ami           = "ami-03cceb19496c25679"
-  instance_type = "t2.micro"
-  subnet_id     = module.vpc_central.subnet_id[0]
-  vpc_id        = module.vpc_central.vpc_id
-  providers = {
-    aws = aws.secondary
-  }
-}
-
-module "global_accelerator" {
-  source                           = "./modules/global_accelerator"
-  name                             = "global-accelerator"
-  ec2_instance_west_instance_id    = module.ec2_instance_west.instance_id
-  ec2_instance_central_instance_id = module.ec2_instance_central.instance_id
+  instance_id = module.ec2_instance_west.instance_id
+  region      = var.aws_region
 }
