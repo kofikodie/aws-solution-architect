@@ -87,7 +87,6 @@ module "eventbridge" {
       {
         name = "central_event_bus_sns"
         arn  = module.sns.topic_arn
-        id   = "central_event_bus_sns"
       }
     ]
   }
@@ -98,7 +97,15 @@ module "sns" {
   source = "terraform-aws-modules/sns/aws"
 
   name = "central-event-bus-sns"
-
+  topic_policy_statements = {
+    events = {
+      actions = ["sns:publish"]
+      principals = [{
+        type        = "Service"
+        identifiers = ["events.amazonaws.com"]
+      }]
+    }
+  }
   subscriptions = {
     email = {
       protocol = "email"
