@@ -28,16 +28,36 @@ locals {
   vpc_cidr = "10.0.0.0/16"
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
-  user_data = <<-EOT
-    #!/bin/bash
-    echo "Hello Terraform!"
-  EOT
+  user_data = <<-EOF
+                #!/bin/bash
+                # Use this for your user data (script from top to bottom)
+                # install httpd (Linux 2 version)
+                yum update -y
+                yum install -y httpd
+                systemctl start httpd
+                systemctl enable httpd
+                echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
+                EOF
 
   tags = {
     Name       = local.name
     Example    = local.name
     Repository = "https://github.com/terraform-aws-modules/terraform-aws-ec2-instance"
   }
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 5.0"
+
+  name = local.name
+  cidr = local.vpc_cidr
+
+  azs             = local.azs
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+
+  tags = local.tags
 }
 
 module "eventbridge" {
@@ -87,18 +107,13 @@ module "sns" {
   }
 }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+module "ec2_instance" {
+  source = "terraform-aws-modules/ec2-instance/aws"
 
-  name = local.name
-  cidr = local.vpc_cidr
-
-  azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
-
-  tags = local.tags
+  name          = local.name
+  ami           = "ami-0766b4b472db7e3b9"
+  instance_type = "t2.micro"
+  subnet_id     = element(module.vpc.private_subnets, 0)
+  user_data     = local.user_data
+  tags          = local.tags
 }
-
-#ami-0766b4b472db7e3b9
