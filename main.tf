@@ -20,3 +20,15 @@ provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
+
+resource "aws_secretsmanager_secret" "saa_c03" {
+  name = "prod/saa-c03"
+}
+
+resource "aws_secretsmanager_secret_version" "saa_c03" {
+  secret_id = aws_secretsmanager_secret.saa_c03.id
+  secret_string = jsonencode({
+    name  = "solution-architect-associate",
+    alias = "saa-c03",
+  })
+}
