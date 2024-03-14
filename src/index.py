@@ -12,4 +12,5 @@ def lambda_handler():
     return "worked"
 
 if __name__ == "__main__":
-    lambda_handler()
+    res = lambda_handler()
+    print(res)
