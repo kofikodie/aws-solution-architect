@@ -18,4 +18,9 @@ variable "aws_account_id" {
   description = "AWS account ID"
 }
 
+variable "database_pwd" {
+  description = "Database password"
+  default     = "password"
+}
+
 data "aws_availability_zones" "available" {}

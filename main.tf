@@ -20,3 +20,23 @@ provider "aws" {
   access_key = var.aws_access_key
   secret_key = var.aws_secret_key
 }
+
+resource "aws_ssm_parameter" "database_url" {
+  name  = "/app/db/url"
+  type  = "String"
+  value = "mysql://localhost:3306"
+
+  tags = {
+    Environment = "dev"
+  }
+}
+
+resource "aws_ssm_parameter" "database_password" {
+  name  = "/app/db/password"
+  type  = "SecureString"
+  value = var.database_pwd
+
+  tags = {
+    Environment = "dev"
+  }
+}
