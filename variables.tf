@@ -19,3 +19,7 @@ variable "aws_account_id" {
 }
 
 data "aws_availability_zones" "available" {}
+
+data "aws_key_pair" "my_key" {
+  key_name = "bh_key_pair"
+}
