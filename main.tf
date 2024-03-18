@@ -72,18 +72,44 @@ resource "aws_subnet" "private_subnet_b" {
   }
 }
 
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
+}
+
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_subnet_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_subnet_b.id
+  route_table_id = aws_route_table.public.id
+}
+
 resource "aws_instance" "web" {
-  ami             = "ami-0c55b159cbfafe1f0"
+  ami             = "ami-0766b4b472db7e3b9"
   instance_type   = "t2.micro"
   subnet_id       = aws_subnet.public_subnet_a.id
-  security_groups = [aws_security_group.ssh.id]
+  security_groups = [aws_security_group.ssh.id, aws_security_group.outbound.id]
 
   tags = {
     Name = "web"
   }
 }
 
-//create a security group for ssh access
 resource "aws_security_group" "ssh" {
   name        = "ssh"
   description = "Allow SSH inbound traffic"
@@ -94,6 +120,19 @@ resource "aws_security_group" "ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "outbound" {
+  name        = "outbound"
+  description = "Allow all outbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
