@@ -5,3 +5,7 @@ output "bastion_allow_ssh" {
 output "private_ssh" {
   value = aws_security_group.private_ssh.id
 }
+
+output "http" {
+  value = aws_security_group.http.id
+}

@@ -33,7 +33,7 @@ module "sg" {
 module "bastion_host" {
   source          = "./module/ec2"
   subnet_id       = module.vpc.public_subnet_a_id
-  security_groups = [module.sg.bastion_allow_ssh]
+  security_groups = [module.sg.bastion_allow_ssh, module.sg.http]
   instance_type   = "t2.micro"
   ami             = "ami-0766b4b472db7e3b9"
   tags = {

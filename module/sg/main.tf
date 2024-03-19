@@ -20,6 +20,19 @@ resource "aws_security_group" "bastion_allow_ssh" {
   }
 }
 
+resource "aws_security_group" "http" {
+  vpc_id      = var.vpc_id
+  name        = "http"
+  description = "security group for public that allows http and all ingress traffic"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "private_ssh" {
   vpc_id      = var.vpc_id
   name        = "private-ssh"
