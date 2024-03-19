@@ -21,6 +21,13 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
+provider "aws" {
+  alias      = "secondary"
+  region     = var.aws_secondary_region
+  access_key = var.aws_access_key
+  secret_key = var.aws_secret_key
+}
+
 locals {
   user_data = <<-EOF
                 #!/bin/bash
@@ -57,6 +64,10 @@ module "bastion_host_west" {
   tags = {
     Name = "bastion"
   }
+
+  providers = {
+    aws = aws
+  }
 }
 
 module "private_host_west" {
@@ -69,12 +80,20 @@ module "private_host_west" {
   tags = {
     Name = "db"
   }
+
+  providers = {
+    aws = aws
+  }
 }
 
 module "vpc_central" {
   source             = "./module/vpc"
   availability_zones = ["eu-central-1a", "eu-central-1b"]
   cidr_block         = "10.1.0.0/16"
+
+  providers = {
+    aws = aws.secondary
+  }
 }
 
 module "sg_central" {
@@ -93,5 +112,9 @@ module "web_central" {
   key_name        = data.aws_key_pair.my_key.key_name
   tags = {
     Name = "web"
+  }
+
+  providers = {
+    aws = aws.secondary
   }
 }
