@@ -121,4 +121,32 @@ resource "aws_default_network_acl" "default" {
     from_port  = 80
     to_port    = 80
   }
+
+  egress {
+    protocol   = "tcp"
+    rule_no    = 80
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 32768
+    to_port    = 65535
+  }
+
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 22
+    action     = "allow"
+    cidr_block = "93.45.87.96/32"
+    from_port  = 22
+    to_port    = 22
+  }
+
+
+  egress {
+    protocol   = "tcp"
+    rule_no    = 22
+    action     = "allow"
+    cidr_block = "93.45.87.96/32"
+    from_port  = 1024
+    to_port    = 65535
+  }
 }

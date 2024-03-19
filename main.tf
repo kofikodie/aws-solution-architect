@@ -21,6 +21,18 @@ provider "aws" {
   secret_key = var.aws_secret_key
 }
 
+locals {
+  user_data = <<-EOF
+                #!/bin/bash
+                # Use this for your user data (script from top to bottom)
+                # install httpd (Linux 2 version)
+                yum update -y
+                yum install -y httpd
+                systemctl start httpd
+                systemctl enable httpd
+                echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
+                EOF
+}
 module "vpc" {
   source = "./module/vpc"
 }
@@ -36,6 +48,8 @@ module "bastion_host" {
   security_groups = [module.sg.bastion_allow_ssh, module.sg.http]
   instance_type   = "t2.micro"
   ami             = "ami-0766b4b472db7e3b9"
+  user_data       = local.user_data
+  key_name        = data.aws_key_pair.my_key.key_name
   tags = {
     Name = "bastion"
   }

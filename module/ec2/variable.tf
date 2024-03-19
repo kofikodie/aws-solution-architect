@@ -28,3 +28,9 @@ variable "key_name" {
   type        = string
   default     = ""
 }
+
+variable "user_data" {
+  description = "The user data to provide the instance"
+  type        = string
+  default     = ""
+}
