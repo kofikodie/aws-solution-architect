@@ -1,51 +1,33 @@
 resource "aws_vpc" "main" {
-  cidr_block       = "10.0.0.0/16"
+  cidr_block       = var.cidr_block
   instance_tenancy = "default"
 
   tags = {
     Name = "main"
   }
 }
+resource "aws_subnet" "public_subnets" {
+  count = 2
 
-resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = aws_vpc.main.id
-  availability_zone       = "eu-west-1a"
-  cidr_block              = "10.0.0.0/24"
+  availability_zone       = var.availability_zones[count.index]
+  cidr_block              = "10.0.${count.index}.0/24"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public_subnet_a"
+    Name = "public_subnet_${count.index}"
   }
 }
 
-resource "aws_subnet" "public_subnet_b" {
-  vpc_id                  = aws_vpc.main.id
-  availability_zone       = "eu-west-1b"
-  cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
+resource "aws_subnet" "private_subnets" {
+  count = 2
 
-  tags = {
-    Name = "public_subnet_b"
-  }
-}
-
-resource "aws_subnet" "private_subnet_a" {
   vpc_id            = aws_vpc.main.id
-  availability_zone = "eu-west-1a"
-  cidr_block        = "10.0.16.0/20"
+  availability_zone = var.availability_zones[count.index]
+  cidr_block        = "10.0.${count.index + 2}.0/24"
 
   tags = {
-    Name = "private_subnet_a"
-  }
-}
-
-resource "aws_subnet" "private_subnet_b" {
-  vpc_id            = aws_vpc.main.id
-  availability_zone = "eu-west-1b"
-  cidr_block        = "10.0.32.0/20"
-
-  tags = {
-    Name = "private_subnet_b"
+    Name = "private_subnet_${count.index}"
   }
 }
 
@@ -66,13 +48,10 @@ resource "aws_route_table" "public" {
   }
 }
 
-resource "aws_route_table_association" "public_a" {
-  subnet_id      = aws_subnet.public_subnet_a.id
-  route_table_id = aws_route_table.public.id
-}
+resource "aws_route_table_association" "public_subnets_association" {
+  count = 2
 
-resource "aws_route_table_association" "public_b" {
-  subnet_id      = aws_subnet.public_subnet_b.id
+  subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
@@ -82,7 +61,7 @@ resource "aws_eip" "nat_eip" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id     = aws_eip.nat_eip.id
-  subnet_id         = aws_subnet.public_subnet_a.id
+  subnet_id         = aws_subnet.public_subnets[0].id
   connectivity_type = "public"
 
   tags = {
@@ -105,7 +84,7 @@ resource "aws_route_table" "nat_gw_rt" {
 }
 
 resource "aws_route_table_association" "nat_gw_rt_a" {
-  subnet_id = aws_subnet.private_subnet_a.id
+  subnet_id = aws_subnet.private_subnets[0].id
 
   route_table_id = aws_route_table.nat_gw_rt.id
 }
