@@ -38,7 +38,9 @@ module "vpc" {
 }
 
 module "sg" {
-  source = "./module/sg"
+  source     = "./module/sg"
+  ip_address = var.ip_address
+
   vpc_id = module.vpc.vpc_id
 }
 

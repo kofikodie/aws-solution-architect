@@ -114,39 +114,20 @@ resource "aws_default_network_acl" "default" {
   default_network_acl_id = aws_vpc.main.default_network_acl_id
 
   ingress {
-    protocol   = "tcp"
-    rule_no    = 80
+    protocol   = "-1"
+    rule_no    = 120
     action     = "allow"
     cidr_block = "0.0.0.0/0"
-    from_port  = 80
-    to_port    = 80
+    from_port  = 0
+    to_port    = 0
   }
 
   egress {
-    protocol   = "tcp"
-    rule_no    = 80
+    protocol   = "-1"
+    rule_no    = 100
     action     = "allow"
     cidr_block = "0.0.0.0/0"
-    from_port  = 32768
-    to_port    = 65535
-  }
-
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 22
-    action     = "allow"
-    cidr_block = "93.45.87.96/32"
-    from_port  = 22
-    to_port    = 22
-  }
-
-
-  egress {
-    protocol   = "tcp"
-    rule_no    = 22
-    action     = "allow"
-    cidr_block = "93.45.87.96/32"
-    from_port  = 1024
-    to_port    = 65535
+    from_port  = 0
+    to_port    = 0
   }
 }

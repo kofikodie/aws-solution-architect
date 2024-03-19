@@ -23,3 +23,8 @@ variable "vpc_id" {
   description = "The VPC ID"
   type        = string
 }
+
+variable "ip_address" {
+  description = "The IP address to allow SSH access from"
+  type        = list(string)
+}

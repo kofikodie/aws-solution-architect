@@ -13,7 +13,7 @@ resource "aws_security_group" "bastion_allow_ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["93.45.87.96/32"]
   }
   tags = {
     Name = "bastion-allow-ssh"

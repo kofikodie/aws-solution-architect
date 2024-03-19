@@ -18,6 +18,11 @@ variable "aws_account_id" {
   description = "AWS account ID"
 }
 
+variable "ip_address" {
+  description = "The IP address to allow SSH access from"
+  type        = list(string)
+}
+
 data "aws_availability_zones" "available" {}
 
 data "aws_key_pair" "my_key" {
