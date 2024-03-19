@@ -44,6 +44,7 @@ module "vpc_west" {
   source             = "./module/vpc"
   availability_zones = ["eu-west-1a", "eu-west-1b"]
   cidr_block         = "10.0.0.0/16"
+  module_id          = 0
 }
 
 module "sg_west" {
@@ -90,6 +91,7 @@ module "vpc_central" {
   source             = "./module/vpc"
   availability_zones = ["eu-central-1a", "eu-central-1b"]
   cidr_block         = "10.1.0.0/16"
+  module_id          = 1
 
   providers = {
     aws = aws.secondary
@@ -101,6 +103,8 @@ module "sg_central" {
   ip_address = var.ip_address
 
   vpc_id = module.vpc_central.vpc_id
+
+  depends_on = [module.vpc_central]
 }
 
 module "web_central" {
@@ -117,4 +121,6 @@ module "web_central" {
   providers = {
     aws = aws.secondary
   }
+
+  depends_on = [module.vpc_central]
 }
