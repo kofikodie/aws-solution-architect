@@ -3,11 +3,11 @@ resource "aws_vpc" "main" {
   instance_tenancy = "default"
 
   tags = {
-    Name = "main"
+    Name = var.name
   }
 }
 resource "aws_subnet" "public_subnets" {
-  count = 2
+  count = length(var.availability_zones)
 
   vpc_id                  = aws_vpc.main.id
   availability_zone       = var.availability_zones[count.index]
@@ -20,7 +20,7 @@ resource "aws_subnet" "public_subnets" {
 }
 
 resource "aws_subnet" "private_subnets" {
-  count = 2
+  count = length(var.availability_zones)
 
   vpc_id            = aws_vpc.main.id
   availability_zone = var.availability_zones[count.index]
@@ -49,7 +49,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public_subnets_association" {
-  count = 2
+  count = length(var.availability_zones)
 
   subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.public.id
@@ -68,7 +68,6 @@ resource "aws_nat_gateway" "nat" {
     Name = "natgw"
   }
 }
-
 
 resource "aws_route_table" "nat_gw_rt" {
   vpc_id = aws_vpc.main.id

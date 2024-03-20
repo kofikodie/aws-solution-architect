@@ -28,3 +28,18 @@ variable "ip_address" {
   description = "The IP address to allow SSH access from"
   type        = list(string)
 }
+
+variable "public_ssh_sg_name" {
+  description = "The name of the public SSH security group"
+  type        = string
+}
+
+variable "http_sg_name" {
+  description = "The name of the HTTP security group"
+  type        = string
+}
+
+variable "private_ssh_sg_name" {
+  description = "The name of the private SSH security group"
+  type        = string
+}

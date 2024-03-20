@@ -11,5 +11,9 @@ variable "availability_zones" {
 variable "module_id" {
   description = "The module id"
   type        = string
+}
 
+variable "name" {
+  description = "The name of the VPC"
+  type        = string
 }

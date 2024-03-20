@@ -1,6 +1,6 @@
 resource "aws_security_group" "bastion_allow_ssh" {
   vpc_id      = var.vpc_id
-  name        = "bastion-allow-ssh"
+  name        = var.public_ssh_sg_name
   description = "security group for bastion that allows ssh and all egress traffic"
   egress {
     from_port   = 0
@@ -16,13 +16,13 @@ resource "aws_security_group" "bastion_allow_ssh" {
     cidr_blocks = var.ip_address
   }
   tags = {
-    Name = "bastion-allow-ssh"
+    Name = var.public_ssh_sg_name
   }
 }
 
 resource "aws_security_group" "http" {
   vpc_id      = var.vpc_id
-  name        = "http"
+  name        = var.http_sg_name
   description = "security group for public that allows http and all ingress traffic"
 
   ingress {
@@ -35,7 +35,7 @@ resource "aws_security_group" "http" {
 
 resource "aws_security_group" "private_ssh" {
   vpc_id      = var.vpc_id
-  name        = "private-ssh"
+  name        = var.private_ssh_sg_name
   description = "security group for private that allows ssh and all egress traffic"
   egress {
     from_port   = 0
@@ -51,6 +51,6 @@ resource "aws_security_group" "private_ssh" {
     security_groups = [aws_security_group.bastion_allow_ssh.id]
   }
   tags = {
-    Name = "private-ssh"
+    Name = var.private_ssh_sg_name
   }
 }
