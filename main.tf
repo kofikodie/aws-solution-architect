@@ -52,6 +52,10 @@ module "sg_west" {
   ip_address = var.ip_address
 
   vpc_id = module.vpc_west.vpc_id
+
+  providers = {
+    aws = aws
+  }
 }
 
 module "bastion_host_west" {
@@ -105,6 +109,10 @@ module "sg_central" {
   vpc_id = module.vpc_central.vpc_id
 
   depends_on = [module.vpc_central]
+
+  providers = {
+    aws = aws.secondary
+  }
 }
 
 module "web_central" {
@@ -112,8 +120,7 @@ module "web_central" {
   subnet_id       = module.vpc_central.public_subnets[0]
   security_groups = [module.sg_central.bastion_allow_ssh, module.sg_central.http]
   instance_type   = "t2.micro"
-  ami             = "ami-0766b4b472db7e3b9"
-  key_name        = data.aws_key_pair.my_key.key_name
+  ami             = "ami-01be94ae58414ab2e"
   tags = {
     Name = "web"
   }
