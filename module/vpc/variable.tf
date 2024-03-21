@@ -17,3 +17,8 @@ variable "name" {
   description = "The name of the VPC"
   type        = string
 }
+
+variable "genarate_ipv6_cidr_block" {
+  description = "A boolean flag to enable/disable the generation of an IPv6 CIDR block"
+  default     = false
+}

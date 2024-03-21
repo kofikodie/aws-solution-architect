@@ -1,7 +1,7 @@
 resource "aws_vpc" "main" {
-  cidr_block       = var.cidr_block
-  instance_tenancy = "default"
-
+  cidr_block                       = var.cidr_block
+  instance_tenancy                 = "default"
+  assign_generated_ipv6_cidr_block = var.genarate_ipv6_cidr_block
   tags = {
     Name = var.name
   }
@@ -9,11 +9,12 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public_subnets" {
   count = length(var.availability_zones)
 
-  vpc_id                  = aws_vpc.main.id
-  availability_zone       = var.availability_zones[count.index]
-  cidr_block              = "10.${var.module_id}.${count.index}.0/24"
-  map_public_ip_on_launch = true
-
+  vpc_id                          = aws_vpc.main.id
+  availability_zone               = var.availability_zones[count.index]
+  cidr_block                      = "10.${var.module_id}.${count.index}.0/24"
+  map_public_ip_on_launch         = true
+  ipv6_cidr_block                 = cidrsubnet(aws_vpc.main.ipv6_cidr_block, 4, count.index + 2)
+  assign_ipv6_address_on_creation = true
   tags = {
     Name = "public_subnet_${count.index}"
   }
@@ -39,12 +40,19 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
+resource "aws_egress_only_internet_gateway" "eigw" {
+  vpc_id = aws_vpc.main.id
+}
+
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
+  }
+  tags = {
+    Name = "public"
   }
 }
 
@@ -53,6 +61,26 @@ resource "aws_route_table_association" "public_subnets_association" {
 
   subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.public.id
+}
+
+//create a route table for private subnets
+
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.eigw.id
+  }
+
+  tags = {
+    Name = "private"
+  }
+}
+
+resource "aws_route_table_association" "private_subnets_association" {
+  subnet_id      = aws_subnet.private_subnets[1].id
+  route_table_id = aws_route_table.private.id
 }
 
 resource "aws_eip" "nat_eip" {
