@@ -9,7 +9,7 @@ To get started with this project, follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/your-username/saa-c03.git
+    git clone https://github.com/kofikodie/aws-solution-architect.git
     ```
 
 2. Switch to the desired branch for the specific service you want to work on:
