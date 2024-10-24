@@ -1,5 +1,4 @@
 
-#https://www.qloudx.com/terraform-module-for-a-ready-to-use-amazon-eks-cluster-with-eks-fargate-aws-irsa-karpenter-with-spot-nodes-abs/ for complete code with karpeneter
 terraform {
   cloud {
     organization = "dragon-ws"
