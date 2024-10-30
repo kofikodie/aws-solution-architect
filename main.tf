@@ -23,6 +23,14 @@ terraform {
       source  = "alekc/kubectl"
       version = ">= 2.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.10"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = ">= 3.0"
+    }
   }
 }
 
@@ -55,34 +63,12 @@ provider "helm" {
   }
 }
 
-
-/*provider "helm" {
-  kubernetes {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-
-    exec {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      command     = "aws"
-      # This requires the awscli to be installed locally where Terraform is executed
-      args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--output", "json"]
-    }
-  }
-}*/
-
 provider "kubectl" {
   apply_retry_count      = 5
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   load_config_file       = false
   token                  = data.aws_eks_cluster_auth.eks.token
-
-  /*exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    # This requires the awscli to be installed locally where Terraform is executed
-    args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--output", "json"]
-  }*/
 }
 
 data "aws_ecrpublic_authorization_token" "token" {
@@ -344,3 +330,44 @@ module "vpc" {
 
   tags = local.tags
 }
+
+################################################################################
+# CW EKS Addon
+################################################################################
+module "aws_cloudwatch_observability_irsa" {
+
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.44"
+
+  role_name = "${module.eks.cluster_name}-cw-ci"
+
+  role_policy_arns = {
+    policy = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+  }
+
+  oidc_providers = {
+    cluster = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["amazon-cloudwatch:cloudwatch-agent"]
+    }
+  }
+}
+
+module "aws_cloudwatch_observability" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.16.2"
+
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  create_kubernetes_resources = true
+  eks_addons = {
+    amazon-cloudwatch-observability = {
+      most_recent              = true
+      service_account_role_arn = module.aws_cloudwatch_observability_irsa.iam_role_arn
+    }
+  }
+}
+
