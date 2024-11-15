@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: frontend-deploy
+  name: frontend-deploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend-deploy
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: frontend-deploy
+    spec:
+      containers:
+      - image: kodie93/fastapi-hello:v1
+        name: fastapi-hello
+        resources: {}
+        ports:
+        - containerPort: 8080
+status: {}

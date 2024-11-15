@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: kodie93/fastapi-hello:v1
+        ports:
+          - containerPort: 3000 
+        resources:
+          requests:
+            memory: "128Mi"    # Minimum memory required to run the app
+            cpu: "250m"        # Minimum CPU needed (e.g., 0.25 of a CPU core)
+          limits:
+            memory: "512Mi"    # Upper limit of memory allowed
+            cpu: "500m" 
