@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: kodie93/fastapi-hello:v1
+        image: kodie93/fastapi-hello:v2
         ports:
           - containerPort: 3000 
         resources:
